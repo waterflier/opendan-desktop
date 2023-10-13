@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+    <link rel="stylesheet" href="index.css" />
+
+  </head>
+  <body>
+    <h1>💖 Hello World!</h1>
+    <p>Welcome to your Electron application.</p>
+    <button id="submitBtn" onclick="">Click me</button>
+
+    <script>
+      async function postData() {
+        const data = {}
+        data["message"] = "bbb" 
+  
+        const rawResponse = await fetch('/api', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+  
+        const res = await rawResponse.json();
+
+        alert(res);
+      }
+  
+      const submitBtn = document.getElementById('submitBtn');
+
+      submitBtn.addEventListener('click', () => {
+        postData(); 
+      });
+    </script>
+  </body>
+</html>
