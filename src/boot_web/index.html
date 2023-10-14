@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Hello World!</title>
+    <title>Loading AIOS</title>
     <link rel="stylesheet" href="index.css" />
 
   </head>
@@ -10,30 +10,9 @@
     <h1>💖 Hello World!</h1>
     <p>Welcome to your Electron application.</p>
     <button id="submitBtn" onclick="">Click me</button>
-
-    <script>
-      async function postData() {
-        const data = {}
-        data["message"] = "bbb" 
-  
-        const rawResponse = await fetch('/api', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-  
-        const res = await rawResponse.json();
-
-        alert(res);
-      }
-  
-      const submitBtn = document.getElementById('submitBtn');
-
-      submitBtn.addEventListener('click', () => {
-        postData(); 
-      });
-    </script>
+    <div id="logContainer" class="log-container">
+      <pre id="logContent"></pre>
+    </div>
+    <script src="index.js" ></script> 
   </body>
 </html>

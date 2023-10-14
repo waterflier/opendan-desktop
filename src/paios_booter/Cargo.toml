@@ -12,6 +12,9 @@ tide-serve-dir-macro = "*"
 serde = "*"
 serde_json = "*"
 tray-item = "*"
+lazy_static = "*"
+log = "*"
+env_logger = "*"
 
 [target.'cfg(windows)'.build-dependencies]
 windres = "*"
