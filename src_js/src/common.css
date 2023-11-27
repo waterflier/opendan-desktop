@@ -1,0 +1,30 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+@font-face {
+    font-family: 'GalanoGrotesqueAlt';
+    src: url('./assets/fonts/GalanoGrotesqueAlt.woff2') format('woff2');
+}
+
+body {
+    font-family: GalanoGrotesqueAlt;
+}
+
+
+img {
+    object-fit: contain;
+}
+
+input:focus {
+    outline: none;
+}
+
+/**
+* chrome remove number input apperance
+*/
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}

@@ -1,0 +1,8 @@
+src/target
+
+node_modules
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+dist
+dist_view

@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .text-title {
+        @apply sm:text-[42px] sm:leading-[52px] font-semibold text-xl;
+    }
+
+    /* flex 居中三件套*/
+    .flex-center {
+        @apply flex items-center justify-center;
+    }
+
+    .text-omit {
+        @apply whitespace-nowrap text-ellipsis overflow-hidden;
+    }
+
+    .btn-dan {
+        @apply flex items-center justify-center text-white bg-dan-blue2 rounded-lg border cursor-pointer hover:bg-dan-blue1
+    }
+
+}
