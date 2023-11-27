@@ -1,7 +1,30 @@
-import { Loader } from 'react-feather';
+import { Loader } from 'react-feather'
+import { create } from 'zustand'
+import InstallSuccess from './InstallSuccess'
+
+interface InstallStoreProps {
+    status: number,
+    success: () => void,
+    failed: () => void,
+}
+
+const useInstallStore = create<InstallStoreProps>((set) => ({
+    status: 1,
+    success: () => {
+        set({ status: 1 })
+    },
+    failed: () => {
+        set({ status: 2 })
+    }
+}))
 
 
 const Installing = () => {
+    const { status } = useInstallStore()
+
+    if (status == 1) {
+        return <InstallSuccess />
+    }
 
     return (
         <>

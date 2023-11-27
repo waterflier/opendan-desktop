@@ -6,7 +6,7 @@ const Index = () => {
     const [build, setBuild] = useState('2023-11-21')
     const navigate = useNavigate()
 
-    const gotoInstall =() => {
+    const gotoInstall = () => {
         navigate('/installing')
     }
 
@@ -25,7 +25,7 @@ const Index = () => {
             </div>
 
             <div className="mt-10 flex-center">
-                <input className="w-4 h-4" type="checkbox"/>
+                <input className="w-4 h-4" type="checkbox" />
 
                 <div className="ml-2">
                     Agree OpenDAN Desktop User Agreements
@@ -34,11 +34,11 @@ const Index = () => {
 
             <div className="flex-center  mt-32">
                 <div
-                 onClick={gotoInstall}
-                 className="btn-dan w-60 h-12">Install OpenDAN Desktop</div>
+                    onClick={gotoInstall}
+                    className="btn-dan w-60 h-12">Install OpenDAN Desktop</div>
             </div>
             <div className="flex-center text-sm mt-4 text-gray-400">
-            OpenDAN Desktop version {version}, build {build}
+                OpenDAN Desktop version {version}, build {build}
             </div>
             <div className="flex-center text-sm mt-1 text-gray-400">
                 Copyright opendan.ai
