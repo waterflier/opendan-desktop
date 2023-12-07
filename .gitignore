@@ -1,4 +1,6 @@
 src/target
+src/static
+src/paios_booter/.env
 
 node_modules
 pnpm-lock.yaml

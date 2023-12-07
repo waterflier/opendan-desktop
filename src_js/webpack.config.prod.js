@@ -1,5 +1,9 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+const targetPath =  path.resolve(__dirname, '../src/static')
+
 
 module.exports = (env) => {
     return {
@@ -19,27 +23,13 @@ module.exports = (env) => {
                 '@hooks': path.resolve(__dirname, 'src/hooks')
             }
         },
-        mode: 'development',
+        mode: 'production', // Changed to 'production'
         devtool: 'source-map',
         output: {
+            path: targetPath,
             publicPath: '/',
             filename: '[name].js',
             chunkFilename: '[name].chunk.js'
-        },
-        devServer: {
-            port: 9000,
-            historyApiFallback: {
-                disableDotRule: true
-            },
-            static: {
-                directory: path.join(__dirname, 'public')
-            },
-            proxy: {
-                '/api': {
-                    target: 'http://localhost:9812',
-                    changeOrigin: true
-                },
-            }
         },
         optimization: {
             splitChunks: {
@@ -132,6 +122,12 @@ module.exports = (env) => {
                 filename: 'index.html',
                 publicPath: '/',
                 chunks: ['main', 'vendor']
+            }),
+            // 将public目录下的文件复制到输出目录
+            new CopyWebpackPlugin({
+                patterns: [
+                    { from: 'public', to: targetPath }
+                ]
             })
         ]
     };

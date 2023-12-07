@@ -1,10 +1,10 @@
-use async_std::task;
 use async_std::io::prelude::*;
 use async_std::process::{Command, Stdio};
 use async_std::sync::{Arc, Mutex};
-use std::time::Duration;
-use std::collections::HashMap;
+use async_std::task;
 use lazy_static::lazy_static;
+use std::collections::HashMap;
+use std::time::Duration;
 
 pub struct LongCommand {
     cmd: String,
@@ -30,7 +30,6 @@ impl LongCommand {
     }
 
     pub async fn run(&self) -> std::io::Result<()> {
-        
         let mut child = Command::new(&self.cmd)
             .args(&self.args)
             .stdout(Stdio::piped())
@@ -64,7 +63,7 @@ impl LongCommand {
                 }
             });
         }
-        
+
         Ok(())
     }
 
@@ -82,7 +81,7 @@ impl LongCommand {
 
     pub async fn kill(&self) -> std::io::Result<()> {
         if let Some(child) = &mut *self.child_handle.lock().await {
-            child.kill();
+            let _ = child.kill();
         }
         Ok(())
     }

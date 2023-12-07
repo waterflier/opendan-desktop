@@ -11,7 +11,7 @@ const InstallSuccess = () => {
             <div>OpenDAN is running on your computer</div>
         </div>
         <div className="flex-center">
-            <div className="btn-dan w-36 h-9">Open Dashboard()</div>
+            <div className="btn-dan w-48 h-10">Open Dashboard()</div>
         </div>
     </div>
     )

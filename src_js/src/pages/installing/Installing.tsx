@@ -1,6 +1,8 @@
 import { Loader } from 'react-feather'
 import { create } from 'zustand'
 import InstallSuccess from './InstallSuccess'
+import { useAsyncEffect } from 'ahooks'
+import {check_docker_version } from '@services/index'
 
 interface InstallStoreProps {
     status: number,
@@ -9,7 +11,7 @@ interface InstallStoreProps {
 }
 
 const useInstallStore = create<InstallStoreProps>((set) => ({
-    status: 1,
+    status: 0,
     success: () => {
         set({ status: 1 })
     },
@@ -21,6 +23,10 @@ const useInstallStore = create<InstallStoreProps>((set) => ({
 
 const Installing = () => {
     const { status } = useInstallStore()
+
+    useAsyncEffect(async () => {
+await check_docker_version()
+    },[])
 
     if (status == 1) {
         return <InstallSuccess />
