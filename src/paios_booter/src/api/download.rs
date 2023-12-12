@@ -3,11 +3,11 @@ use async_std::fs::File;
 use async_std::io::prelude::*;
 use async_std::task;
 use log::{error, info};
+use serde_json::json;
 use std::sync::{Arc, Mutex};
 use surf;
 use tide::Request; // 引入额外的 trait 以便使用 async read
-
-// use crate::api::def::*;
+                   // use crate::api::def::*;
 
 // 下载状态枚举
 #[derive(Clone, Debug)]
@@ -21,12 +21,14 @@ pub enum DownloadState {
 #[derive(Clone)]
 pub struct AppState {
     download_state: Arc<Mutex<DownloadState>>,
+    progress: Arc<Mutex<f32>>,
 }
 
 impl AppState {
     pub fn new() -> Self {
         AppState {
             download_state: Arc::new(Mutex::new(DownloadState::NotStarted)),
+            progress: Arc::new(Mutex::new(0.0)),
         }
     }
 }
@@ -51,9 +53,14 @@ pub async fn start_download(req: Request<AppState>) -> tide::Result {
             success_response!("Download started")
         }
         DownloadState::InProgress => {
-            info!("target file downloading");
+            let progress = req.state().progress.lock().unwrap();
+            let progress = format!("{:.2}%", *progress);
+            info!("target file downloading, {}", progress);
             // 如果下载正在进行中，返回正在下载
-            success_response!("Download is in progress")
+            success_response!(json!({
+                "message": "Download in progress",
+                "progress": progress,
+            }))
         }
     }
 }
@@ -112,14 +119,17 @@ async fn download_file(state: AppState, url: String) -> Result<(), Box<dyn std::
             downloaded += n as u64;
 
             // Update progress here
-            let progress = if total_size > 0 {
+            let new_progress = if total_size > 0 {
                 downloaded as f32 / total_size as f32 * 100.0
             } else {
                 0.0 // If total size is unknown, we can't calculate progress
             };
-            if progress - last_reported_progress >= 5.0 {
-                info!("Download progress: {:.2}%", progress);
-                last_reported_progress = progress; // 更新最后报告的进度
+            let mut progress = state.progress.lock().unwrap();
+            *progress = new_progress;
+
+            if new_progress - last_reported_progress >= 5.0 {
+                info!("Download progress: {:.2}%", new_progress);
+                last_reported_progress = new_progress; // 更新最后报告的进度
             }
         }
 
