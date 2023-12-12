@@ -7,7 +7,8 @@ use serde_json::json;
 use std::sync::{Arc, Mutex};
 use surf;
 use tide::Request; // 引入额外的 trait 以便使用 async read
-                   // use crate::api::def::*;
+
+// use crate::api::def::*;
 
 // 下载状态枚举
 #[derive(Clone, Debug)]
@@ -22,6 +23,7 @@ pub enum DownloadState {
 pub struct AppState {
     download_state: Arc<Mutex<DownloadState>>,
     progress: Arc<Mutex<f32>>,
+    start_time: Arc<Mutex<u128>>,
 }
 
 impl AppState {
@@ -29,6 +31,7 @@ impl AppState {
         AppState {
             download_state: Arc::new(Mutex::new(DownloadState::NotStarted)),
             progress: Arc::new(Mutex::new(0.0)),
+            start_time: Arc::new(Mutex::new(0)),
         }
     }
 }
@@ -37,10 +40,27 @@ impl AppState {
 pub async fn start_download(req: Request<AppState>) -> tide::Result {
     let mut state_lock = req.state().download_state.lock().unwrap();
 
+    // 判断文件是否存在
+    let output = "Docker Desktop Installer.exe";
+    if std::path::Path::new(output).exists() {
+        *state_lock = DownloadState::Completed;
+        // 如果文件存在，直接返回
+        return success_response!(json!({
+            "state": 2,
+            "message": "Download completed",
+        }));
+    }
+
     match *state_lock {
         DownloadState::NotStarted | DownloadState::Completed => {
             // 如果下载未开始或已完成，启动下载任务
             *state_lock = DownloadState::InProgress;
+
+            let mut start_time = req.state().start_time.lock().unwrap();
+            *start_time = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis();
 
             // 异步下载文件
             let state = req.state().clone();
@@ -50,7 +70,10 @@ pub async fn start_download(req: Request<AppState>) -> tide::Result {
                     error!("Download error: {}", e);
                 }
             });
-            success_response!("Download started")
+            success_response!(json!({
+                "message": "Download in started",
+                "state": 0,
+            }))
         }
         DownloadState::InProgress => {
             let progress = req.state().progress.lock().unwrap();
@@ -59,6 +82,7 @@ pub async fn start_download(req: Request<AppState>) -> tide::Result {
             // 如果下载正在进行中，返回正在下载
             success_response!(json!({
                 "message": "Download in progress",
+                "state": 1,
                 "progress": progress,
             }))
         }
@@ -67,14 +91,37 @@ pub async fn start_download(req: Request<AppState>) -> tide::Result {
 
 // 查询下载状态的处理函数
 pub async fn get_status(req: Request<AppState>) -> tide::Result {
-    let state_lock = req.state().download_state.lock().unwrap();
+    let mut state_lock = req.state().download_state.lock().unwrap();
 
-    let status_message = match *state_lock {
-        DownloadState::NotStarted => "Download not started",
-        DownloadState::InProgress => "Download in progress",
-        DownloadState::Completed => "Download completed",
-    };
-    success_response!(status_message)
+    // 判断文件是否存在
+    let output = "Docker Desktop Installer.exe";
+    if std::path::Path::new(output).exists() {
+        *state_lock = DownloadState::Completed;
+    }
+
+    match *state_lock {
+        DownloadState::NotStarted => {
+            return success_response!(json!({
+                "state": 0,
+                "message": "Download not started",
+            }));
+        }
+        DownloadState::InProgress => {
+            let progress = req.state().progress.lock().unwrap();
+            let progress = format!("{:.2}%", *progress);
+            return success_response!(json!({
+                "state": 1,
+                "message": "Download in progress",
+                "progress": progress,
+            }));
+        }
+        DownloadState::Completed => {
+            return success_response!(json!({
+                "state": 2,
+                "message": "Download completed",
+            }));
+        }
+    }
 }
 
 // 异步下载文件，并更新状态
