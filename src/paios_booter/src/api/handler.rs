@@ -2,39 +2,13 @@ use async_std::process::Command;
 use log::{error, info};
 use serde::{Deserialize, Serialize, Serializer};
 use std::env;
+use std::error::Error;
 use tide::prelude::*;
 use tide::Response;
+// use tokio::fs::File;
+// use tokio::io::AsyncWriteExt;
 
-use crate::long_cmd::*;
-
-#[derive(Serialize, Deserialize, Debug)]
-struct RpcRequest {
-    function_name: String,
-    params: Option<serde_json::Value>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct RpcResponse {
-    result: serde_json::Value,
-    error: Option<String>,
-    code: ErrorCode,
-}
-
-#[derive(Deserialize, Debug, Clone, Copy)]
-enum ErrorCode {
-    Ok = 0,
-    InternalError = 10001,
-    CommandError = 10010,
-}
-// 实现Serialize trait，将枚举转换为数字
-impl Serialize for ErrorCode {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u32((*self) as u32)
-    }
-}
+use crate::api::def::*;
 
 macro_rules! error_response {
     ($e:expr, $code:expr) => {{
@@ -83,33 +57,29 @@ async fn check_docker_service() -> tide::Result<RpcResponse> {
     }
 }
 
-async fn try_install_docker() -> tide::Result<i32> {
+async fn try_install_docker() -> tide::Result<RpcResponse> {
     let os = env::consts::OS;
     match os {
         "windows" => {
-            let download_cmd = r#"
-            $url = "https://desktop.docker.com/win/stable/Docker Desktop Installer.exe"
-            $output = "Docker Desktop Installer.exe"
-            Invoke-WebRequest -Uri $url -OutFile $output
-            "#;
-            Command::new("powershell")
-                .args(&["-Command", download_cmd])
-                .output()
-                .await?;
-
-            let install_cmd = r#"
-            Start-Process -Wait "Docker Desktop Installer.exe"
-            "#;
-            Command::new("powershell")
-                .args(&["-Command", install_cmd])
-                .output()
-                .await?;
+            let url = "https://desktop.docker.com/win/stable/Docker Desktop Installer.exe";
+            let output = "Docker Desktop Installer.exe";
+            info!("win download Docker Desktop Installer");
+            // info!("win install Docker Desktop Installer");
+            // let install_cmd = r#"
+            // Start-Process -Wait "Docker Desktop Installer.exe"
+            // "#;
+            // Command::new("powershell")
+            //     .args(&["-Command", install_cmd])
+            //     .output()
+            //     .await?;
+            Ok(success_response!("downloading"))
         }
         "macos" => {
             let url = "https://desktop.docker.com/mac/stable/Docker.dmg";
-
+            info!("download Docker Desktop Installer");
             Command::new("curl").args(&["-LO", url]).output().await?;
 
+            info!("install Docker Desktop Installer");
             let install_cmd = r#"
             hdiutil attach Docker.dmg
             cp -R /Volumes/Docker/Docker.app /Applications/
@@ -120,14 +90,14 @@ async fn try_install_docker() -> tide::Result<i32> {
                 .arg(install_cmd)
                 .output()
                 .await?;
+            Ok(success_response!(""))
         }
-        _ => {
+        e => {
             eprintln!("Unsupported OS for automatic Docker installation");
-            return Ok(1);
+            let rpc_resp = error_response!(e, ErrorCode::CommandError);
+            Ok(rpc_resp)
         }
     }
-
-    Ok(0)
 }
 
 async fn container_exists(container_name: &str) -> tide::Result<bool> {
@@ -221,7 +191,11 @@ pub async fn api_handler(mut req: tide::Request<()>) -> tide::Result {
             let json_string = serde_json::to_string(&rpc_resp).unwrap();
             resp.set_body(json_string);
         }
-        "try_install_docker" => {}
+        "try_install_docker" => {
+            let rpc_resp = try_install_docker().await?;
+            let json_string = serde_json::to_string(&rpc_resp).unwrap();
+            resp.set_body(json_string);
+        }
         "start_aios" => {}
         "stop_aios" => {}
         "update_aios" => {}

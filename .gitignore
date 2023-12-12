@@ -1,6 +1,7 @@
 src/target
 src/static
 src/paios_booter/.env
+src/Docker Desktop Installer.exe
 
 node_modules
 pnpm-lock.yaml

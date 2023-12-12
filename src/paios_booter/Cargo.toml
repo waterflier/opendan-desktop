@@ -15,6 +15,9 @@ tray-item = "*"
 lazy_static = "*"
 log = "*"
 env_logger = "*"
+surf = "2.3.1"
+async-recursion = "*"
+futures = "*"
 
 [target.'cfg(windows)'.build-dependencies]
 windres = "*"
