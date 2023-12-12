@@ -6,9 +6,7 @@ use log::{error, info};
 use serde_json::json;
 use std::sync::{Arc, Mutex};
 use surf;
-use tide::Request; // 引入额外的 trait 以便使用 async read
-
-// use crate::api::def::*;
+use tide::Request;
 
 // 下载状态枚举
 #[derive(Clone, Debug)]
@@ -45,10 +43,10 @@ pub async fn start_download(req: Request<AppState>) -> tide::Result {
     if std::path::Path::new(output).exists() {
         *state_lock = DownloadState::Completed;
         // 如果文件存在，直接返回
-        return success_response!(json!({
+        success_response!(json!({
             "state": 2,
             "message": "Download completed",
-        }));
+        }))
     }
 
     match *state_lock {
@@ -101,25 +99,25 @@ pub async fn get_status(req: Request<AppState>) -> tide::Result {
 
     match *state_lock {
         DownloadState::NotStarted => {
-            return success_response!(json!({
+            success_response!(json!({
                 "state": 0,
                 "message": "Download not started",
-            }));
+            }))
         }
         DownloadState::InProgress => {
             let progress = req.state().progress.lock().unwrap();
             let progress = format!("{:.2}%", *progress);
-            return success_response!(json!({
+            success_response!(json!({
                 "state": 1,
                 "message": "Download in progress",
                 "progress": progress,
-            }));
+            }))
         }
         DownloadState::Completed => {
-            return success_response!(json!({
+            success_response!(json!({
                 "state": 2,
                 "message": "Download completed",
-            }));
+            }))
         }
     }
 }

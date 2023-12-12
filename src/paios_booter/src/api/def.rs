@@ -39,6 +39,20 @@ macro_rules! success_response {
         };
         let json_string = serde_json::to_string(&rpc_resp).unwrap();
         resp.set_body(json_string);
-        Ok(resp)
+        return Ok(resp);
+    }};
+}
+
+macro_rules! error_response {
+    ($e:expr, $code:expr) => {{
+        let mut resp = tide::Response::new(tide::StatusCode::Ok);
+        let rpc_resp = crate::api::def::RpcResponse {
+            result: tide::prelude::json!(""),
+            error: Some($e.to_string()),
+            code: $code,
+        };
+        let json_string = serde_json::to_string(&rpc_resp).unwrap();
+        resp.set_body(json_string);
+        return Ok(resp);
     }};
 }

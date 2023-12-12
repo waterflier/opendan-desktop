@@ -1,7 +1,7 @@
 mod api;
 // mod long_cmd;
 
-use crate::api::download::*;
+use crate::api::*;
 // use crate::api::{api_handler, shell_open};
 use async_std::task;
 use env_logger::Builder;
@@ -21,9 +21,9 @@ async fn async_main() -> tide::Result<()> {
     auto_serve_dir!(app, "/", "./static/");
     app.at("/").serve_file("./static/index.html")?;
     // app.at("/api").post(api_handler);
-    app.at("/api/dockerdesktop/start_download")
-        .post(start_download);
-    app.at("/api/dockerdesktop/get_status").get(get_status);
+    app.at("/api/docker/download").post(start_download);
+    app.at("/api/docker/status").get(get_status);
+    app.at("/api/docker/check").post(check_docker_service);
 
     task::spawn(open_home_page());
     app.listen("127.0.0.1:9812").await.unwrap();
