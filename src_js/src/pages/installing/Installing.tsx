@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import InstallSuccess from './InstallSuccess'
 import { useAsyncEffect } from 'ahooks'
 import {check_docker_version } from '@services/index'
+import { useLoaderData } from 'react-router-dom'
 
 interface InstallStoreProps {
     status: number,
@@ -23,10 +24,9 @@ const useInstallStore = create<InstallStoreProps>((set) => ({
 
 const Installing = () => {
     const { status } = useInstallStore()
+    const data = useLoaderData()
+    console.log('loader', data)
 
-    useAsyncEffect(async () => {
-await check_docker_version()
-    },[])
 
     if (status == 1) {
         return <InstallSuccess />

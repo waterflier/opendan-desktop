@@ -39,6 +39,7 @@ macro_rules! success_response {
         };
         let json_string = serde_json::to_string(&rpc_resp).unwrap();
         resp.set_body(json_string);
+        resp.set_content_type(tide::http::mime::JSON);
         return Ok(resp);
     }};
 }
@@ -53,6 +54,7 @@ macro_rules! error_response {
         };
         let json_string = serde_json::to_string(&rpc_resp).unwrap();
         resp.set_body(json_string);
+        resp.set_content_type(tide::http::mime::JSON);
         return Ok(resp);
     }};
 }

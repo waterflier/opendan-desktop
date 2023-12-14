@@ -6,8 +6,8 @@ const Index = () => {
     const [build, setBuild] = useState('2023-11-21')
     const navigate = useNavigate()
 
-    const gotoInstall = () => {
-        navigate('/installing')
+    const gotoCheck = () => {
+        navigate('/check')
     }
 
     return (
@@ -34,7 +34,7 @@ const Index = () => {
 
             <div className="flex-center  mt-32">
                 <div
-                    onClick={gotoInstall}
+                    onClick={gotoCheck}
                     className="btn-dan w-60 h-12">Install OpenDAN Desktop</div>
             </div>
             <div className="flex-center text-sm mt-4 text-gray-400">
