@@ -22,6 +22,7 @@ async fn async_main() -> tide::Result<()> {
     app.at("/").serve_file("./static/index.html")?;
     // app.at("/api").post(api_handler);
     app.at("/api/docker/download").post(start_download);
+    app.at("/api/docker/install").post(docker_install);
     app.at("/api/docker/status").get(get_status);
     app.at("/api/docker/check").post(check_docker_service);
 

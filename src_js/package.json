@@ -11,7 +11,7 @@
     "license": "ISC",
     "dependencies": {
         "ahooks": "^3.7.4",
-        "copy-to-clipboard": "^3.3.3",
+        "antd": "^5.12.2",
         "dayjs": "^1.11.7",
         "lodash": "^4.17.21",
         "react": "^18.2.0",

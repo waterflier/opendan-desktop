@@ -31,3 +31,46 @@ pub async fn check_docker_service(_: Request<AppState>) -> tide::Result {
         }
     }
 }
+
+pub async fn docker_install(_: Request<AppState>) -> tide::Result {
+    let os = std::env::consts::OS;
+    match os {
+        "windows" => {
+            // let output = "Docker Desktop Installer.exe";
+            info!("win install Docker Desktop Installer");
+            let install_cmd = r#"
+            Start-Process -Wait "Docker Desktop Installer.exe"
+            "#;
+            Command::new("powershell")
+                .args(&["-Command", install_cmd])
+                .output()
+                .await?;
+            success_response!(json!({
+                "message": "install success",
+            }))
+        }
+        "macos" => {
+            // let url = "https://desktop.docker.com/mac/stable/Docker.dmg";
+            info!("download Docker Desktop Installer");
+            // Command::new("curl").args(&["-LO", url]).output().await?;
+            info!("install Docker Desktop Installer");
+            let install_cmd = r#"
+            hdiutil attach Docker.dmg
+            cp -R /Volumes/Docker/Docker.app /Applications/
+            hdiutil detach /Volumes/Docker/
+            "#;
+            Command::new("sh")
+                .arg("-c")
+                .arg(install_cmd)
+                .output()
+                .await?;
+            success_response!(json!({
+                "message": "install success",
+            }))
+        }
+        e => {
+            eprintln!("Unsupported OS for automatic Docker installation");
+            error_response!(e, ErrorCode::CommandError)
+        }
+    }
+}

@@ -6,10 +6,7 @@ import { useLoaderData } from 'react-router-dom'
 
 
 const Check = () => {
-    const data = useLoaderData() as CommonResponse
-    console.log('loader', data)
-    console.log('loader', data, typeof data)
-
+    const data = useLoaderData() as CommonResponse<null>
     // 没有安装docker
     if (data.code == 10010) {
         console.log('no docker, goto install')

@@ -29,9 +29,6 @@ const router = createBrowserRouter([
             {
                 path: '/installing',
                 element: <Installing />,
-                loader: async () => {
-                    return fetch(`/api/docker/check`, {method: 'POST'});
-                }
             },
         ]
     }

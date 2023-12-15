@@ -34,6 +34,14 @@ impl AppState {
     }
 }
 
+fn get_output() -> &'static str {
+    match std::env::consts::OS {
+        "windows" => "Docker Desktop Installer.exe",
+        "macos" => "Docker.dmg",
+        _ => "",
+    }
+}
+
 // 启动下载的处理函数
 pub async fn start_download(req: Request<AppState>) -> tide::Result {
     let mut state_lock = req.state().download_state.lock().unwrap();
@@ -63,7 +71,14 @@ pub async fn start_download(req: Request<AppState>) -> tide::Result {
             // 异步下载文件
             let state = req.state().clone();
             task::spawn(async move {
-                let url = "https://desktop.docker.com/win/stable/Docker Desktop Installer.exe";
+                let url = match std::env::consts::OS {
+                    "windows" => {
+                        "https://desktop.docker.com/win/stable/Docker Desktop Installer.exe"
+                    }
+                    "macos" => "https://desktop.docker.com/mac/stable/Docker.dmg",
+                    _ => "",
+                };
+                // "https://desktop.docker.com/win/stable/Docker Desktop Installer.exe";
                 if let Err(e) = download_file(state, url.to_string()).await {
                     error!("Download error: {}", e);
                 }
@@ -92,7 +107,7 @@ pub async fn get_status(req: Request<AppState>) -> tide::Result {
     let mut state_lock = req.state().download_state.lock().unwrap();
 
     // 判断文件是否存在
-    let output = "Docker Desktop Installer.exe";
+    let output = get_output();
     if std::path::Path::new(output).exists() {
         *state_lock = DownloadState::Completed;
     }
@@ -102,11 +117,12 @@ pub async fn get_status(req: Request<AppState>) -> tide::Result {
             success_response!(json!({
                 "state": 0,
                 "message": "Download not started",
+                "progress": 0,
             }))
         }
         DownloadState::InProgress => {
             let progress = req.state().progress.lock().unwrap();
-            let progress = format!("{:.2}%", *progress);
+            let progress = format!("{:.2}", *progress);
             success_response!(json!({
                 "state": 1,
                 "message": "Download in progress",
@@ -117,6 +133,7 @@ pub async fn get_status(req: Request<AppState>) -> tide::Result {
             success_response!(json!({
                 "state": 2,
                 "message": "Download completed",
+                "progress": 100,
             }))
         }
     }
@@ -126,9 +143,6 @@ pub async fn get_status(req: Request<AppState>) -> tide::Result {
 #[async_recursion]
 async fn download_file(state: AppState, url: String) -> Result<(), Box<dyn std::error::Error>> {
     info!("start to down load file, url {}", url);
-
-    // let url = "https://desktop.docker.com/win/stable/Docker Desktop Installer.exe";
-    let output = "Docker Desktop Installer.exe";
 
     let mut res = surf::get(url).await?;
 
@@ -154,7 +168,7 @@ async fn download_file(state: AppState, url: String) -> Result<(), Box<dyn std::
         let mut buf = vec![0; 1024 * 1024]; // 1 MB buffer
 
         let mut last_reported_progress: f32 = 0.0; // 用于记录上次报告的进度
-        let mut file = File::create(output).await?;
+        let mut file = File::create("tempfile").await?;
         while let Ok(n) = futures::io::AsyncReadExt::read(&mut stream, &mut buf).await {
             if n == 0 {
                 info!("download_file download complete in AsyncReadExt");
@@ -184,9 +198,17 @@ async fn download_file(state: AppState, url: String) -> Result<(), Box<dyn std::
         error!("Failed to download file: {}", res.status());
     }
 
-    let mut state_lock = state.download_state.lock().unwrap();
-    *state_lock = DownloadState::Completed;
-    info!("complete to down load file");
-
+    // Rename the entire file after downloading is complete
+    let output = get_output();
+    match std::fs::rename("tempfile", output) {
+        Ok(_) => {
+            let mut state_lock = state.download_state.lock().unwrap();
+            *state_lock = DownloadState::Completed;
+            info!("complete to down load file");
+        }
+        Err(e) => {
+            error!("rename tempfile failed {}", e.to_string());
+        }
+    }
     Ok(())
 }
