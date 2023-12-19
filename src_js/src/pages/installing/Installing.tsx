@@ -37,8 +37,9 @@ const Installing = () => {
         const data = await docker_download()
         console.log('data', data)
         if (data.result.state == 2) {
-            console.log('installing')
+            console.log('file exist')
             updateState(data.result.state)
+            setProgress(100)
         } else if (data.result.state == 0 || data.result.state == 1) {
             //TODO  progress
             console.log('start download interval')
